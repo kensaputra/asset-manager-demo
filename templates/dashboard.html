@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="head">
+  <h1>Dashboard</h1>
+  {% if session.role == 'admin' %}<a class="btn primary" href="{{ url_for('asset_new') }}">+ New asset</a>{% endif %}
+</div>
+
+<section class="stats">
+  <a class="stat" href="{{ url_for('asset_list') }}"><b>{{ total }}</b><span>Total assets</span></a>
+  <a class="stat" href="{{ url_for('asset_list', status='active') }}"><b>{{ by_status.get('active', 0) }}</b><span>Active</span></a>
+  <a class="stat" href="{{ url_for('asset_list', status='repair') }}"><b>{{ by_status.get('repair', 0) }}</b><span>Under repair</span></a>
+  <a class="stat warn" href="{{ url_for('asset_list', unverified=1) }}"><b>{{ unverified }}</b><span>Not verified this month</span></a>
+  <a class="stat" href="{{ url_for('asset_list', status='active') }}"><b>{{ unassigned }}</b><span>Active, no holder</span></a>
+</section>
+
+<div class="grid2">
+  <section class="card">
+    <h2>Assets by category</h2>
+    <ul class="bars">
+      {% for row in by_category %}
+      <li>
+        <a href="{{ url_for('asset_list', category=row.category) }}">{{ row.category }}</a>
+        <span class="bar"><i style="width: {{ (row.n / max_cat * 100)|round(1) }}%"></i></span>
+        <b>{{ row.n }}</b>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Recent handovers</h2>
+    {% if recent %}
+    <ul class="timeline">
+      {% for h in recent %}
+      <li>
+        <a href="{{ url_for('asset_detail', asset_id=h.asset_id) }}"><code>{{ h.code }}</code> {{ h.name }}</a>
+        <span>{{ h.from_name or 'Storage' }} → {{ h.to_name or 'Storage' }}</span>
+        <time>{{ h.recorded_at[:10] }}</time>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No handovers yet.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

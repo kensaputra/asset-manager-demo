@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New asset' if mode == 'new' else 'Edit ' ~ asset.code }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('asset_list') if mode == 'new' else url_for('asset_detail', asset_id=asset.id) }}">← Back</a></p>
+<h1>{{ 'New asset' if mode == 'new' else 'Edit ' ~ asset.code }}</h1>
+<form class="card form" method="post">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label>Asset code <input name="code" value="{{ asset.code or '' }}" placeholder="LT-101" required></label>
+  <label>Name <input name="name" value="{{ asset.name or '' }}" placeholder="Lenovo ThinkPad E14" required></label>
+  <label>Category
+    <select name="category" required>
+      {% for c in CATEGORIES %}<option {{ 'selected' if asset.category == c }}>{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Status
+    <select name="status" required>
+      {% for k, v in STATUSES.items() %}<option value="{{ k }}" {{ 'selected' if asset.status == k }}>{{ v }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Brand <input name="brand" value="{{ asset.brand or '' }}"></label>
+  <label>Serial number <input name="serial_number" value="{{ asset.serial_number or '' }}"></label>
+  <label>Location <input name="location" value="{{ asset.location or '' }}" placeholder="Head Office - Floor 1" required></label>
+  <label>Purchased on <input type="date" name="purchased_on" value="{{ asset.purchased_on or '' }}"></label>
+  <div class="form-actions"><button class="btn primary">{{ 'Add asset' if mode == 'new' else 'Save changes' }}</button></div>
+</form>
+{% endblock %}

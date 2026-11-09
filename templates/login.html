@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block main_class %}center{% endblock %}
+{% block content %}
+<form class="card login" method="post">
+  <h1><span class="logo">◆</span> Asset Manager</h1>
+  <p class="muted">Track company assets, who holds them, and every handover.</p>
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label>Username <input name="username" autocomplete="username" required autofocus></label>
+  <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+  <button class="btn primary">Sign in</button>
+  <p class="hint">Demo accounts: <code>admin / admin123</code> (full access) or <code>viewer / viewer123</code> (read only).</p>
+</form>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Assets{% endblock %}
+{% block content %}
+<div class="head">
+  <h1>Assets <small>{{ total }} found</small></h1>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('asset_export', **args) }}">Export CSV</a>
+    {% if session.role == 'admin' %}<a class="btn primary" href="{{ url_for('asset_new') }}">+ New asset</a>{% endif %}
+  </div>
+</div>
+
+<form class="filters" method="get">
+  <input name="q" value="{{ args.get('q', '') }}" placeholder="Search code, name, serial or holder">
+  <select name="category">
+    <option value="">All categories</option>
+    {% for c in CATEGORIES %}<option {{ 'selected' if args.get('category') == c }}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="status">
+    <option value="">All statuses</option>
+    {% for k, v in STATUSES.items() %}<option value="{{ k }}" {{ 'selected' if args.get('status') == k }}>{{ v }}</option>{% endfor %}
+  </select>
+  <label class="check"><input type="checkbox" name="unverified" value="1" {{ 'checked' if args.get('unverified') == '1' }}> Not verified this month</label>
+  <button class="btn">Filter</button>
+  {% if args %}<a class="link" href="{{ url_for('asset_list') }}">Clear</a>{% endif %}
+</form>
+
+<div class="table-wrap card">
+<table>
+  <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Holder</th><th>Location</th><th>Status</th><th>Verified</th></tr></thead>
+  <tbody>
+  {% for a in rows %}
+    <tr>
+      <td><a href="{{ url_for('asset_detail', asset_id=a.id) }}"><code>{{ a.code }}</code></a></td>
+      <td><a href="{{ url_for('asset_detail', asset_id=a.id) }}">{{ a.name }}</a></td>
+      <td>{{ a.category }}</td>
+      <td>{{ a.holder_name or '—' }}</td>
+      <td>{{ a.location }}</td>
+      <td><span class="pill {{ a.status }}">{{ STATUSES[a.status] }}</span></td>
+      <td>
+        {% if a.status == 'disposed' %}—
+        {% elif a.last_verified and a.last_verified >= month_start %}<span class="ok">✓ {{ a.last_verified }}</span>
+        {% else %}<span class="due">due</span>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">No assets match these filters.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if pages > 1 %}
+<nav class="pager">
+  {% if page > 1 %}<a class="btn" href="{{ url_for('asset_list', page=page-1, **args) }}">← Prev</a>{% endif %}
+  <span>Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a class="btn" href="{{ url_for('asset_list', page=page+1, **args) }}">Next →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

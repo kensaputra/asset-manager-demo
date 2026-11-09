@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ asset.code }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('asset_list') }}">← Assets</a></p>
+<div class="head">
+  <h1><code>{{ asset.code }}</code> {{ asset.name }}</h1>
+  {% if session.role == 'admin' %}<a class="btn" href="{{ url_for('asset_edit', asset_id=asset.id) }}">Edit</a>{% endif %}
+</div>
+
+<div class="grid2">
+  <section class="card">
+    <h2>Details</h2>
+    <dl class="facts">
+      <dt>Status</dt><dd><span class="pill {{ asset.status }}">{{ STATUSES[asset.status] }}</span></dd>
+      <dt>Category</dt><dd>{{ asset.category }}</dd>
+      <dt>Brand</dt><dd>{{ asset.brand or '—' }}</dd>
+      <dt>Serial number</dt><dd><code>{{ asset.serial_number or '—' }}</code></dd>
+      <dt>Location</dt><dd>{{ asset.location }}</dd>
+      <dt>Holder</dt><dd>{% if asset.holder_name %}{{ asset.holder_name }} <span class="muted">· {{ asset.holder_dept }}</span>{% else %}—{% endif %}</dd>
+      <dt>Purchased</dt><dd>{{ asset.purchased_on or '—' }}</dd>
+      <dt>Last verified</dt>
+      <dd>
+        {% if asset.last_verified and asset.last_verified >= month_start %}<span class="ok">✓ {{ asset.last_verified }}</span>
+        {% else %}<span class="due">{{ asset.last_verified or 'never' }} (due this month)</span>{% endif %}
+      </dd>
+    </dl>
+    {% if session.role == 'admin' and asset.status != 'disposed' %}
+    <form method="post" action="{{ url_for('asset_verify', asset_id=asset.id) }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="btn">Mark verified today</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    {% if session.role == 'admin' and asset.status != 'disposed' %}
+    <h2>Hand over</h2>
+    <form class="stack" method="post" action="{{ url_for('asset_handover', asset_id=asset.id) }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <label>New holder
+        <select name="to_holder">
+          <option value="">Return to storage</option>
+          {% for e in employees %}
+          <option value="{{ e.id }}" {{ 'disabled' if e.id == asset.holder_id }}>{{ e.name }} · {{ e.department }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Note <input name="note" maxlength="300" placeholder="e.g. new hire, replacement unit"></label>
+      <button class="btn primary">Record handover</button>
+    </form>
+    {% endif %}
+
+    <h2>History</h2>
+    {% if history %}
+    <ul class="timeline">
+      {% for h in history %}
+      <li>
+        <span>{{ h.from_name or 'Storage' }} → <b>{{ h.to_name or 'Storage' }}</b></span>
+        {% if h.note %}<span class="muted">{{ h.note }}</span>{% endif %}
+        <time>{{ h.recorded_at[:16] }} · {{ h.recorded_by }}</time>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No handovers recorded.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}
